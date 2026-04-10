@@ -1,0 +1,133 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/paperbench/rubric_schema.json",
+  "title": "PaperBench rubric JSON",
+  "description": "Schema derived from paperbench/rubric/tasks.py. It models the rubric input accepted by TaskNode.from_dict plus TaskNode.__post_init__. Extra properties are allowed because the loader ignores unknown keys.",
+  "$ref": "#/$defs/taskNode",
+  "$defs": {
+    "taskCategory": {
+      "type": "string",
+      "enum": [
+        "Code Development",
+        "Code Execution",
+        "Result Analysis",
+        "Subtree"
+      ]
+    },
+    "finegrainedTaskCategory": {
+      "type": "string",
+      "enum": [
+        "Environment & Infrastructure Setup",
+        "Dataset and Model Acquisition",
+        "Data Processing & Preparation",
+        "Method Implementation",
+        "Experimental Setup",
+        "Evaluation, Metrics & Benchmarking",
+        "Logging, Analysis & Presentation"
+      ]
+    },
+    "taskNode": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "id",
+        "requirements",
+        "weight",
+        "sub_tasks"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Expected type from TaskNode.id annotation. Runtime code does not perform an explicit type check."
+        },
+        "requirements": {
+          "type": "string",
+          "description": "Expected type from TaskNode.requirements annotation. Runtime code does not perform an explicit type check."
+        },
+        "weight": {
+          "type": "number",
+          "minimum": 0,
+          "description": "TaskNode.__post_init__ accepts int or float and rejects negative values."
+        },
+        "sub_tasks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/taskNode"
+          },
+          "description": "Must be present on every node. Use an empty array for leaves."
+        },
+        "task_category": {
+          "default": null,
+          "oneOf": [
+            {
+              "$ref": "#/$defs/taskCategory"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "finegrained_task_category": {
+          "default": null,
+          "oneOf": [
+            {
+              "$ref": "#/$defs/finegrainedTaskCategory"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "sub_tasks"
+            ],
+            "properties": {
+              "sub_tasks": {
+                "maxItems": 0
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "task_category"
+            ],
+            "properties": {
+              "task_category": {
+                "$ref": "#/$defs/taskCategory"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "task_category": {
+                "type": "null",
+                "description": "Internal nodes may omit task_category or set it to null; non-null values are rejected by TaskNode.__post_init__."
+              }
+            }
+          }
+        }
+      ],
+      "examples": [
+        {
+          "id": "root",
+          "requirements": "The paper has been reproduced.",
+          "weight": 1,
+          "sub_tasks": [
+            {
+              "id": "leaf-1",
+              "requirements": "The optimizer has been implemented.",
+              "weight": 1,
+              "sub_tasks": [],
+              "task_category": "Code Development",
+              "finegrained_task_category": "Method Implementation"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
