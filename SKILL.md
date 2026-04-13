@@ -174,6 +174,8 @@ Generation procedure:
    - The root must have `weight: 1`.
    - The root should summarize the overall reproduction target at a high level.
 2. Decompose the first level by contributions or experimental blocks, not by table of contents sections, unless the paper truly organizes independent evaluation programs by section.
+   - For each root child you create, identify its intended paper anchor before expanding it further.
+   - Valid anchors include a numbered figure, numbered table, named section or subsection, named algorithm, equation block, procedure, or a clearly stated contribution in the abstract/introduction.
 3. Assign root-child weights locally relative to siblings. Use the first-level weighting priors from `reference/structural_principles_complete.md`.
 4. Then expand one root child at a time.
 5. For each subtree, expand one level at a time until the leaf requirements become specific, binary, and judgeable.
@@ -235,13 +237,26 @@ Procedure:
 2. Produce `{INPUT_DIR}/coverage_review.md` answering:
    - Which contributions and experimental programs are covered?
    - Which contributions or experiments are missing?
+   - Go through the key figures, tables, algorithms, and named experimental blocks listed in `paper_analysis.md` and verify that each one has at least one corresponding rubric branch.
    - Which leaves are too vague for binary grading?
    - Do first-level weights reflect the paper's relative emphasis?
    - Is the leaf-type mix reasonable for this paper family?
+2b. For every first-level child of the root, and only for first-level children, verify that it has a direct anchor in the paper:
+   - a numbered figure
+   - a numbered table
+   - a named section or subsection
+   - a named algorithm, equation block, or procedure
+   - or a clearly stated contribution in the abstract/introduction
+
+   If a first-level node does not have a direct anchor, mark it as suspicious in `coverage_review.md`.
+   Suspicious first-level nodes must then be either:
+   - removed, if they do not correspond to a real paper element
+   - or reconciled/merged into an anchored node that does correspond to a real paper element
 3. For every missing contribution or experiment, add the missing nodes.
-4. For every vague leaf, either rewrite it into a crisp binary requirement or split it into several smaller leaves.
-5. Re-check ordering, IDs, and weight reasonableness after the edits.
-6. Save both `coverage_review.md` and the updated `rubric.json`.
+4. For every suspicious first-level node, remove it or reconcile it with a real anchored paper element.
+5. For every vague leaf, either rewrite it into a crisp binary requirement or split it into several smaller leaves.
+6. Re-check ordering, IDs, and weight reasonableness after the edits.
+7. Save both `coverage_review.md` and the updated `rubric.json`.
 
 Checkpoint requirement:
 - `coverage_review.md` must exist before moving to validation.
