@@ -99,7 +99,8 @@ Instead, inspect the artifacts already present in `INPUT_DIR` and resume from th
 3. Else if `rubric.json` exists but contains incomplete structure, resume at Pass 2 and expand only the incomplete branches.
 4. Else if `coverage_review.md` is missing, resume at Pass 2.5.
 5. Else if `validation_report.txt` is missing, or if the rubric still has unresolved schema/validation problems, resume at Pass 3.
-6. Else run Pass 4 and emit the completion banner.
+6. Else if `coverage_review.md` predates the latest validated `rubric.json` / `validation_report.txt`, resume at Pass 3.5.
+7. Else run Pass 4 and emit the completion banner.
 
 When resuming:
 - Read all existing artifacts first.
@@ -149,7 +150,14 @@ rubric_size ≈ experiment_families × datasets_per_family × baselines_per_data
    - Named procedures / reusable modules
    - Key tables and figures
    - Complexity estimate and likely rubric size band
+   - Target leaf-type mix (`Code Development` / `Code Execution` / `Result Analysis`)
    - Likely first-level decomposition candidates
+
+Inside the target leaf-type mix section:
+- estimate a paper-specific target mix or target range for `Code Development`, `Code Execution`, and `Result Analysis`
+- ground that estimate in the paper's actual structure, not in a global benchmark-average quota
+- explain briefly why that mix is plausible for this paper
+- treat the target mix as a soft planning prior for later passes, not as a rule that must be matched mechanically
 
 Checkpoint requirement:
 - Save `paper_analysis.md` to disk before doing any rubric generation.
@@ -240,7 +248,7 @@ Procedure:
    - Go through the key figures, tables, algorithms, and named experimental blocks listed in `paper_analysis.md` and verify that each one has at least one corresponding rubric branch.
    - Which leaves are too vague for binary grading?
    - Do first-level weights reflect the paper's relative emphasis?
-   - Is the leaf-type mix reasonable for this paper family?
+   - Compare the current leaf-type mix against the target mix or range in `paper_analysis.md`. Is the draft materially skewed? If yes, explain whether the skew reflects true paper structure or missing / over-compressed branches.
 2b. For every first-level child of the root, and only for first-level children, verify that it has a direct anchor in the paper:
    - a numbered figure
    - a numbered table
@@ -255,8 +263,14 @@ Procedure:
 3. For every missing contribution or experiment, add the missing nodes.
 4. For every suspicious first-level node, remove it or reconcile it with a real anchored paper element.
 5. For every vague leaf, either rewrite it into a crisp binary requirement or split it into several smaller leaves.
-6. Re-check ordering, IDs, and weight reasonableness after the edits.
-7. Save both `coverage_review.md` and the updated `rubric.json`.
+6. If the draft is materially skewed relative to the target mix, repair the structure only where the paper justifies it:
+   - add missing branches
+   - de-bundle over-compressed branches
+   - reclassify leaves only when their wording or semantics are actually wrong
+
+   Do not split leaves mechanically just to chase percentages.
+7. Re-check ordering, IDs, and weight reasonableness after the edits.
+8. Save both `coverage_review.md` and the updated `rubric.json`.
 
 Checkpoint requirement:
 - `coverage_review.md` must exist before moving to validation.
@@ -300,7 +314,23 @@ Repair priorities:
 
 Never keep a schema error. A rubric with schema errors is not complete.
 
-## 9. Pass 4 - Finalization
+## 9. Pass 3.5 - Final review sync
+
+Goal: refresh `coverage_review.md` so it is a critical audit of the final validated rubric, not a stale snapshot of a pre-repair draft.
+
+Procedure:
+
+1. Read the final `rubric.json`, the current `coverage_review.md`, `paper_analysis.md`, and `validation_report.txt`.
+2. Rewrite `coverage_review.md` as a final audit of the saved rubric:
+   - retain criticisms that are still true
+   - remove criticisms that were resolved during repair
+   - update any node counts, first-level structure descriptions, and leaf-type observations so they match the final saved rubric
+   - keep the first-level anchor audit explicit
+   - keep the target-mix comparison explicit
+3. This sync step must remain critical. Do not turn it into a bland summary of the rubric.
+4. Save the updated `coverage_review.md`.
+
+## 10. Pass 4 - Finalization
 
 Before finishing:
 
@@ -324,7 +354,7 @@ Saved: <INPUT_DIR>/rubric.json
 ============================================================
 ```
 
-## 10. Failure handling and quality bar
+## 11. Failure handling and quality bar
 
 If you encounter missing inputs, unreadable PDFs, or extraction failures:
 - try a second extraction method before giving up
